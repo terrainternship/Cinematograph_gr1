@@ -60,7 +60,7 @@ def open_file():
         text = txt_edit.get("1.0", tk.END)
         output_file.write(text)
     
-    txt_edit.insert(tk.END,f"\nЛог сохранен в файл: {f'{dir_path}/{file_name}.txt'}\n")
+    txt_edit.insert(tk.END,f"\nЛог сохранен в файл: {f'{start_dir}/{file_name}.txt'}\n")
     txt_edit.yview_moveto('1.0')
 
 def save_file():
