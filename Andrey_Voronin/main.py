@@ -4,13 +4,43 @@ from tkinter import ttk
 import os
 from glob import glob 
 import cv2
-import datetime 
+import datetime
+from ultralytics import YOLO
+from interval import get_interval
 
 
-from track import Track # Библиотека детектор
-from interval import *
+
+
+def on_predict_postprocess_end(predictor):
+    '''
+    CollBack для предикта.
+    Позволяет получить данные для отображения прогресса предикта
+    '''
+    inf=predictor.batch[3].split()
+    file = inf[3]
+    file = file[file.rfind('\\')+1:]
+    inf=inf[2][1:-1].split('/')
+    cur_frame=int(inf[0])
+    all_fame=int(inf[1])
+    progress_file['maximum'] = all_fame
+    progress_file['value'] = cur_frame
+    lbl_state['text']=f"Обработка: {file} текущий фрэйм {cur_frame}/{all_fame}, Общий прогресс {progress['value']}%"
+    window.update()
+
+
+
+def Track(file):
+    '''
+    Предикт модели
+    out - список кадров, на которых обнаружена сигарета
+    '''
+    rez=model.predict(file, save=False, conf=0.23, stream=True,  verbose=False)
+    out =[i+1 for i,r in enumerate (rez) if len(r.boxes.cls)>0]
+    return out
+
 
 def open_file():
+    error=0
     txt_edit.delete('1.0', tk.END)
     start_dir = filedialog.askdirectory()
     files = []
@@ -31,9 +61,6 @@ def open_file():
     window.update()
 
     for i,file in enumerate(files):
-        lbl_state['text']=f"Обработка: {file} {progress['value']:20}%"
-        window.update()
-        
         try:
             video = cv2.VideoCapture(file) 
             fps = video.get(cv2.CAP_PROP_FPS)  # Get the frame rate of the video 
@@ -50,12 +77,13 @@ def open_file():
             txt_edit.insert(tk.END,f"{frame_count/fps:>13.3f}сек.")
             txt_edit.insert(tk.END,f"{size:>11.2f}Мб\n")
 
+
+            progress_file.start()
             result=Track(file) # Вызов функции Track
-            print(result)
-            print(get_interval(result,fps))
             txt_edit.insert(tk.END,f"{get_interval(result,fps)}\n")
+            progress_file.stop()
         except:
-            pass
+            error+=1
         
         
 
@@ -64,9 +92,9 @@ def open_file():
         progress['value'] = round((i+1)*100/all)
 
     progress['value'] = 100
-    lbl_state['text']=f"Обработка завершена. Обработано файлов - {all}"
+    lbl_state['text']=f"Обработка завершена. Обработано файлов - {all-error}"
     
-    # dir_path = os.path.dirname(os.path.realpath(__file__))
+    
     file_name = datetime.datetime.today().strftime("%Y-%m-%d-%H.%M.%S")
 
     with open(f'{start_dir}/{file_name}.txt', "w", encoding="utf-8") as output_file:
@@ -88,9 +116,20 @@ def save_file():
         text = txt_edit.get("1.0", tk.END)
         output_file.write(text)
     window.title(f"Smoke Detect - {filepath}")
- 
 
 
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+
+dir_path = f'{DIR_PATH}\\models\\*.pt'
+yolo_model = ','.join(glob(dir_path))
+
+
+# Load the model.
+model = YOLO(yolo_model)
+# model.to('cuda')
+model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 window = tk.Tk()
 window.title("Smoke Detect")
@@ -125,10 +164,16 @@ lbl_state=tk.Label(text='Состояние')
 lbl_state.grid(row=2,column=0,sticky="w", padx=10)
 
 
-# progress_file = ttk.Progressbar(orient="horizontal",  mode="indeterminate", length=100, value=0)
-# progress_file.grid(row=3,column=0,sticky="ew")
+
+s = ttk.Style()
+s.theme_use('alt')
+s.configure("file.Horizontal.TProgressbar", background='lime')
+
+
+
+progress_file = ttk.Progressbar(orient="horizontal",  length=100, value=0, style='file.Horizontal.TProgressbar')
+progress_file.grid(row=3,column=0,sticky="ew")
 
 progress = ttk.Progressbar(orient="horizontal", length=100, value=0)
 progress.grid(row=4,column=0,sticky="ew")
-
 window.mainloop()
