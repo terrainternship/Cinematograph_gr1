@@ -13,7 +13,7 @@ from interval import get_interval
 
 def on_predict_postprocess_end(predictor):
     '''
-    CollBack для предикта.
+    CallBack для предикта.
     Позволяет получить данные для отображения прогресса предикта
     '''
     inf=predictor.batch[3].split()
