@@ -1,1 +1,59 @@
 Здесь полученные результаты по проекту
+
+Dockerfile
+
+# Arguments to build Docker Image using CUDA
+FROM kobyzevyuri/groundino:latest
+WORKDIR /home/appuser
+RUN mkdir tracker
+COPY gr_track.py /home/appuser/
+COPY tracker/* /home/appuser/tracker/
+COPY GroundingDINO_SwinT_OGC.py /home/appuser/
+COPY groundingdino_swint_ogc.pth /home/appuser/
+COPY groundino_yolo.py /home/appuser/
+
+=====================
+
+
+main container groundino:latest build
+with instructiond on site:
+https://github.com/IDEA-Research/Grounded-Segment-Anything
+
+=============
+sudo docker run -it --gpus all -v /home/cnn/projects/mytest/parts:/parts smoke:latest python gr_track.py /parts /parts/log.txt
+- this is film tracker
+first arg: parts - directory where films
+second - path to log file with time intervals for every film
+all other args are:
+parser = argparse.ArgumentParser(description='Videos to images')
+parser.add_argument('source_dir',nargs='?', help='film directory or parts', type=str, default='/home/appuser/films')
+parser.add_argument('logfile', type=str, nargs='?', help="log file or log.txt", default='/home/appuser/films/log.txt')
+parser.add_argument('text_prompt', type=str, nargs='?', help="text prompt or cigarette", default='cigarette')
+parser.add_argument('box_threshold', type=str, nargs='?', help="box_threshold or 0.35", default=0.35)
+parser.add_argument('text_threshold', type=str, nargs='?', help="text_threshold or 0.25", default=0.25)
+================================================
+so you can change thresholds in command line
+second program
+groundino_yolo.py
+makes labels for yolov8:
+
+parser.add_argument('image_path',nargs='?', help='image directory or film', type=str, default='/images')
+parser.add_argument('label_path', type=str, nargs='?', help="log file or log.txt", default='/images/log.txt')
+parser.add_argument('text_prompt', type=str, nargs='?', help="text prompt or cigarette", default='cigarette')
+parser.add_argument('box_threshold', type=str, nargs='?', help="box_threshold or 0.35", default=0.35)
+parser.add_argument('text_threshold', type=str, nargs='?', help="text_threshold or 0.25", default=0.25)
+
+It is uses class Gracker in tracker directory
+
+both programs use config and weights
+groundingdino_swint_ogc.pth
+GroundingDINO_SwinT_OGC.py
+
+grom original framework
+
+
+
+
+
+
+
