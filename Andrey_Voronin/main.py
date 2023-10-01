@@ -80,6 +80,7 @@ def open_file():
 
             progress_file.start()
             result=Track(file) # Вызов функции Track
+            txt_edit.insert(tk.END,f"Временные метки начала и окончания сцен курения с сигаретами:\n")
             txt_edit.insert(tk.END,f"{get_interval(result,fps)}\n")
             progress_file.stop()
         except:
