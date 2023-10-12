@@ -1,17 +1,18 @@
-def get_interval(frames, fps):
+def get_interval(frames, fps, skip=5):
     interval=[]
     temp=[] 
+
     for i, frame in enumerate (frames):
         if i==0:
             temp.append(frame)
-        elif (frame-temp[-1])<(fps*2):
+        elif (frame-temp[-1])<(fps*skip):
             temp.append(frame)
+
         else:
             if len(temp)>3:
                 interval.append(interval_to_time(temp[0],temp[-1],fps))
             temp.clear()
             temp.append(frame)
-
 
     if len(temp)>3:
         interval.append(interval_to_time(temp[0],temp[-1],fps)) #доп условие
@@ -36,5 +37,8 @@ def interval_to_time(start,stop,fps):
             f'{time_stop[1]}:{time_stop[2]}:{time_stop[3]}:{time_stop[4]}')
 
 
-# t=[11, 12, 13, 14, 17, 62, 63, 64, 65, 66, 67, 68, 69, 70, 74, 82, 83, 93, 95, 96, 97, 111, 112, 113,912001,912002,912003,912004,912005,912006,912007]
-# print(get_interval(t, 25))
+#t=[11, 12, 13, 14, 17, 62, 63, 64, 65, 66, 67, 68, 69, 70, 74, 82, 83, 93, 95, 96, 97, 1110, 1111, 1112, 1113,912001,912002,912003,912004,912005,912006,912007]
+#print(get_interval(t, 25,5))
+
+#t=[6, 7, 8, 9, 16, 20, 54, 55, 56, 57, 58, 59, 60]
+#print(get_interval(t, 25,5))
