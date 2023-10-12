@@ -6,7 +6,7 @@ from glob import glob
 import cv2
 import datetime
 from ultralytics import YOLO
-from interval import get_interval
+from interval import *
 
 
 
@@ -34,8 +34,10 @@ def Track(file):
     Предикт модели
     out - список кадров, на которых обнаружена сигарета
     '''
-    rez=model.predict(file, save=False, conf=0.23, stream=True,  verbose=False)
+    print(float(sca.get()))
+    rez=model.predict(file, save=False, conf=float(sca.get()), stream=True,  verbose=False)
     out =[i+1 for i,r in enumerate (rez) if len(r.boxes.cls)>0]
+    progress_file.stop()
     return out
 
 
@@ -81,7 +83,7 @@ def open_file():
             progress_file.start()
             result=Track(file) # Вызов функции Track
             txt_edit.insert(tk.END,f"Временные метки начала и окончания сцен курения с сигаретами:\n")
-            txt_edit.insert(tk.END,f"{get_interval(result,fps)}\n")
+            txt_edit.insert(tk.END,f"{get_interval(result,fps,skip=int(spin.get()))}\n")
             progress_file.stop()
         except:
             error+=1
@@ -123,7 +125,8 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 
-dir_path = f'{DIR_PATH}\\models\\*.pt'
+
+dir_path = f'{DIR_PATH}\\yolo_weights\\*.pt'
 yolo_model = ','.join(glob(dir_path))
 
 
@@ -133,7 +136,11 @@ model = YOLO(yolo_model)
 model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 window = tk.Tk()
-window.title("Smoke Detect")
+
+skip = tk.IntVar(value=5)
+exact = tk.DoubleVar(value=0.25)
+
+window.title("Детектор сцен курения на видео v0.4")
 window.iconbitmap('ico/logo.ico')
 window.rowconfigure(0, minsize=50, weight=0)
 window.rowconfigure(1, minsize=100, weight=1)
@@ -148,11 +155,24 @@ fr_buttons = tk.Frame(window, relief=tk.RAISED, bd=0)
 btn_open = tk.Button(fr_buttons, image=open_btn_image, text="Открыть", bd=0, command=open_file)
 btn_save = tk.Button(fr_buttons, image=save_btn_image, text="Сохранить как...", bd=0, command=save_file)
 Lbl_info = tk.Label(fr_buttons,text="")
- 
-fr_buttons.columnconfigure(2, minsize=200, weight=1)
+sca = tk.Scale(fr_buttons, label='Порог обнаружения:', orient="horizontal", length=300, from_=0, to=1, tickinterval=0.1, resolution=0.01, variable=exact)
+Lbl_spin = tk.Label(fr_buttons,text="Интервал:")
+spin = tk.Spinbox(fr_buttons,  from_=0, to=60, width=5, textvariable=skip)  
+
+
+
+
+fr_buttons.columnconfigure(4, minsize=200, weight=1)
 btn_open.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
 btn_save.grid(row=0, column=1, sticky="ew", padx=5)
-Lbl_info.grid(row=0, column=2, sticky="e", padx=5)
+Lbl_info.grid(row=0, column=4, sticky="e", padx=5)
+Lbl_spin.grid(row=0, column=2, sticky="en", padx=0)
+spin.grid(row=0, column=2, sticky="ew", padx=5)
+sca.grid(row=0, column=3, sticky="ew", padx=5)
+
+
+
+
 
 fr_buttons.grid(row=0, column=0, sticky="ew")
 txt_edit.grid(row=1, column=0, sticky="nsew")
