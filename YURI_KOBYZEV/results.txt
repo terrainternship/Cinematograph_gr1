@@ -52,6 +52,17 @@ GroundingDINO_SwinT_OGC.py
 grom original framework
 
 
+==========================
+
+Создал и загрузил в папки с трэкерами
+весь софт
+но веса не поместились
+
+все можно скачать отсюда
+https://drive.google.com/drive/folders/17ignl1XrZTABGasHeshDe5XFyXVJfp8a?usp=drive_link
+
+
+
 
 
 
