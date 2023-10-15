@@ -1,0 +1,5 @@
+CONFIG_PATH: /home/appuser/GroundingDINO_SwinT_OGC.py
+CHECKPOINT_PATH: /home/appuser/groundingdino_swint_ogc.pth
+TEXT_PROMPT: 'cigarette.'
+BOX_TRESHOLD: 0.35
+TEXT_TRESHOLD: 0.25

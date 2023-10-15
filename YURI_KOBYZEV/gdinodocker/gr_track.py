@@ -2,6 +2,8 @@ import cv2
 import os
 from tracker.Gracker import Gracker
 import argparse
+import datetime
+
 parser = argparse.ArgumentParser(description='Videos to images')
 parser.add_argument('source_dir',nargs='?', help='film directory or parts', type=str, default='/home/appuser/films')
 parser.add_argument('logfile', type=str, nargs='?', help="log file or log.txt", default='/home/appuser/films/log.txt')
@@ -25,6 +27,10 @@ q.text_prompt = args.text_prompt
 q.source_dir = args.source_dir
 
 log = open(logfile,'a')
+now = datetime.datetime.now()
+print ("Current date and time : ")
+log.write('start log: '+now.strftime("%Y-%m-%d %H:%M:%S")+'\n')
+
 
 for root, dirs, files in os.walk(source_dir, topdown=False):
    for name in files:
