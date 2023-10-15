@@ -2,10 +2,13 @@ import cv2
 import os
 from tracker.Tracker import Tracker
 import argparse
+import datetime
+
 parser = argparse.ArgumentParser(description='Videos to images')
 #/usr/src/app/models/
 parser.add_argument('source_dir',nargs='?', help='film directory or parts', type=str, default='/usr/src/ultralytics/parts')
 parser.add_argument('logfile', type=str, nargs='?', help="log file or log.txt", default='/usr/src/ultralytics/parts/log.txt')
+parser.add_argument('weights',nargs='?', help='weights path', type=str, default='/usr/src/app/models/smokeroboflow_yolov8s_640_best.pt')
 parser.add_argument('imgsz', type=str, nargs='?', help=" image size 640", default=640)
 parser.add_argument('conf', type=str, nargs='?', help=" or 0.25", default=0.25)
 parser.add_argument('half', type=str, nargs='?', help="half=False", default=False)
@@ -25,8 +28,13 @@ q.device = args.device
 q.conf = args.conf
 q.half = args.half
 q.source_dir = args.source_dir
+q.weights = args.weights
+print("Q weights changed:",q.weights)
 
 log = open(logfile,'a')
+now = datetime.datetime.now()
+print ("Current date and time : ")
+log.write('start log: '+now.strftime("%Y-%m-%d %H:%M:%S")+'\n')
 
 for root, dirs, files in os.walk(source_dir, topdown=False):
    for name in files:
