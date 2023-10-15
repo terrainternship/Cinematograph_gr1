@@ -18,12 +18,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-ARG BASE_IMAGE=ultralytics/ultralytics:latest
+ARG BASE_IMAGE=ultralytics/yolov5:latest
 FROM ${BASE_IMAGE}
 
 ENV LANG en_US.UTF-8
-RUN mkdir /usr/src/ultralytics/models/
-COPY models/*.pt /usr/src/ultralytics/models/
-RUN mkdir /usr/src/ultralytics/tracker
-COPY  tracker/Tracker.py /usr/src/ultralytics/tracker
-COPY y8_track.py /usr/src/ultralytics/
+
+COPY models/*.pt /usr/src/app/models/
+COPY Quadro.py /usr/src/app
+COPY quadro.yaml /usr/src/app
+COPY data.yaml /usr/src/app
+COPY y5_track.py /usr/src/app
