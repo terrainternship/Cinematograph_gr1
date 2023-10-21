@@ -1,4 +1,4 @@
-from tkinter import filedialog, Tk, IntVar, DoubleVar, Text, PhotoImage, Frame, Button, Scale, Label, Spinbox, Scrollbar
+from tkinter import Menu, filedialog, Tk, StringVar, IntVar, DoubleVar, Text, PhotoImage, Frame, Button, Scale, Label, Spinbox, Scrollbar
 from tkinter import END, RAISED
 from tkinter.ttk import Progressbar, Style
 from os import path, walk
@@ -38,7 +38,6 @@ def Track(file):
     '''
     rez=model.predict(file, save=False, conf=float(sca.get()), stream=True,  verbose=False)
     out =[i+1 for i,r in enumerate (rez) if len(r.boxes.cls)>0]
-    progress_file.stop()
     return out
 
 
@@ -83,11 +82,13 @@ def open_file():
 
             progress_file.start()
             result=Track(file) # Вызов функции Track
+            progress_file.stop()
             txt_edit.insert(END,f"Временные метки начала и окончания сцен курения с сигаретами:\n")
             txt_edit.insert(END,f"{get_interval(result,fps,skip=int(spin.get()))}\n")
             progress_file.stop()
         except:
             error+=1
+            txt_edit.insert(END,f"Ошибка обработки {file}\n")
         
         
 
@@ -121,6 +122,14 @@ def save_file():
         output_file.write(text)
     window.title(f"Smoke Detect - {filepath}")
 
+def weights_choose():
+    pass
+    #global model
+    #model = YOLO(selected_option.get())
+    #model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
+
+
+
 
 DIR_PATH = path.dirname(path.realpath(__file__))
 
@@ -128,25 +137,48 @@ DIR_PATH = path.dirname(path.realpath(__file__))
 
 
 dir_path = f'{DIR_PATH}\\yolo_weights\\*.pt'
-yolo_model = ','.join(glob(dir_path))
+#yolo_model = ','.join(glob(dir_path))
+yolo_model = glob(dir_path)[0]
+
 
 
 # Load the model.
 model = YOLO(yolo_model)
-#model.to('cuda')
+model.to('cuda')
 model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 
 window = Tk()
 
-skip = IntVar(value=5)
-exact = DoubleVar(value=0.25)
+selected_option = StringVar(value=yolo_model)
+
+with open("config.sys",'r') as settings:
+    param=settings.readlines()
+
+
+skip = IntVar(value=int(param[0]))
+exact = DoubleVar(value=float(param[1]))
 
 window.title("Детектор сцен курения на видео v0.4")
 window.iconbitmap('ico/logo.ico')
 window.rowconfigure(0, minsize=50, weight=0)
 window.rowconfigure(1, minsize=100, weight=1)
 window.columnconfigure(0, minsize=200, weight=1)
+
+mainmenu = Menu(window)
+window.config(menu=mainmenu) 
+
+filemenu = Menu(mainmenu, tearoff=0)
+filemenu.add_command(label="Выход", command=window.destroy)
+
+weightsmenu = Menu(mainmenu, tearoff=0)
+for weights in glob(dir_path):
+    weightsmenu.add_radiobutton(label=weights, variable=selected_option, value=weights, command=weights_choose)
+
+mainmenu.add_cascade(label='Файл', menu=filemenu)
+mainmenu.add_cascade(label='Веса', menu=weightsmenu)
+
+
 
 txt_edit = Text(window)
 
@@ -156,8 +188,6 @@ save_btn_image = PhotoImage(file='ico/save.png')
 cuda_image = PhotoImage(file='ico/cpu.png')
 if torch.cuda.is_available():
     cuda_image = PhotoImage(file='ico/gpu.png')
-
-
 
 fr_buttons = Frame(window, relief=RAISED, bd=0)
 btn_open = Button(fr_buttons, image=open_btn_image, text="Открыть", bd=0, command=open_file)
@@ -206,4 +236,13 @@ progress_file.grid(row=3,column=0,sticky="ew")
 
 progress = Progressbar(orient="horizontal", length=100, value=0)
 progress.grid(row=4,column=0,sticky="ew")
+
+
+
+txt_edit.insert(END, f'Веса из файла {yolo_model} загружены\n')
+
 window.mainloop()
+
+with open("config.sys",'w') as settings:
+    settings.write(f'{skip.get()}\n')
+    settings.write(str(exact.get()))
