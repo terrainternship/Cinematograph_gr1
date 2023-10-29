@@ -8,6 +8,7 @@ from cv2 import CAP_PROP_FPS, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, CAP_P
 from datetime import datetime
 from ultralytics import YOLO
 from interval import *
+from sys import platform
 import torch
 
 
@@ -147,6 +148,7 @@ model = YOLO(yolo_model)
 model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 
+# Орканизация GUI
 window = Tk()
 
 selected_option = StringVar(value=yolo_model)
@@ -154,12 +156,16 @@ selected_option = StringVar(value=yolo_model)
 with open("config.sys",'r') as settings:
     param=settings.readlines()
 
-
 skip = IntVar(value=int(param[0]))
 exact = DoubleVar(value=float(param[1]))
 
-window.title("Детектор сцен курения на видео v0.4")
-window.iconbitmap('ico/logo.ico')
+window.title("Детектор сцен курения на видео v1.0")
+
+if platform == "win32":
+    window.iconbitmap('ico/logo.ico')
+else:
+    window.iconbitmap('ico/logo.png')
+
 window.rowconfigure(0, minsize=50, weight=0)
 window.rowconfigure(1, minsize=100, weight=1)
 window.columnconfigure(0, minsize=200, weight=1)
@@ -177,8 +183,6 @@ for weights in glob(dir_path):
 mainmenu.add_cascade(label='Файл', menu=filemenu)
 mainmenu.add_cascade(label='Веса', menu=weightsmenu)
 
-
-
 txt_edit = Text(window)
 
 open_btn_image = PhotoImage(file='ico/open.png')
@@ -188,29 +192,25 @@ cuda_image = PhotoImage(file='ico/cpu.png')
 if torch.cuda.is_available():
     cuda_image = PhotoImage(file='ico/gpu.png')
 
-fr_buttons = Frame(window, relief=RAISED, bd=0)
-btn_open = Button(fr_buttons, image=open_btn_image, text="Открыть", bd=0, command=open_file)
-btn_save = Button(fr_buttons, image=save_btn_image, text="Сохранить как...", bd=0, command=save_file)
-Lbl_info = Label(fr_buttons,text="")
-Lbl_cuda = Label(fr_buttons,image = cuda_image)
-sca = Scale(fr_buttons, label='Порог обнаружения:', orient="horizontal", length=300, from_=0, to=1, tickinterval=0.1, resolution=0.01, variable=exact)
-Lbl_spin = Label(fr_buttons,text="Интервал:")
-spin = Spinbox(fr_buttons,  from_=0, to=60, width=5, textvariable=skip)  
+fr_buttons = Frame(window, relief=RAISED, bd=0) #Панель с кнопками
+btn_open = Button(fr_buttons, image=open_btn_image, text="Открыть", bd=0, command=open_file) #Кнопка открытия
+btn_save = Button(fr_buttons, image=save_btn_image, text="Сохранить как...", bd=0, command=save_file) #Кнопка сохранения
+Lbl_info = Label(fr_buttons,text="") #Подпись доп. информации о обнаруженных файлах 
+Lbl_cuda = Label(fr_buttons,image = cuda_image) #Картинка подключения CPU/GPU
+sca = Scale(fr_buttons, label='Порог обнаружения:', orient="horizontal", length=300, from_=0, to=1, tickinterval=0.1, resolution=0.01, variable=exact) #Порог обнаружения
+Lbl_spin = Label(fr_buttons,text="Интервал:") #Подпись интервал
+spin = Spinbox(fr_buttons,  from_=0, to=60, width=5, textvariable=skip) #Выбор интервала объединения обнаруженный сцен
 
 
-
-
-fr_buttons.columnconfigure(5, minsize=200, weight=1)
-btn_open.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-btn_save.grid(row=0, column=1, sticky="ew", padx=5)
-Lbl_spin.grid(row=0, column=2, sticky="en", padx=0)
+# Расстановка виджетов=================================
+fr_buttons.columnconfigure(5, minsize=200, weight=1) 
+btn_open.grid(row=0, column=0, sticky="ew", padx=5, pady=5) 
+btn_save.grid(row=0, column=1, sticky="ew", padx=5) 
+Lbl_spin.grid(row=0, column=2, sticky="en", padx=0) 
 spin.grid(row=0, column=2, sticky="ew", padx=5)
 sca.grid(row=0, column=3, sticky="ew", padx=5)
 Lbl_cuda.grid(row=0, column=4, sticky="ew", padx=5)
 Lbl_info.grid(row=0, column=5, sticky="e", padx=5)
-
-
-
 
 fr_buttons.grid(row=0, column=0, sticky="ew")
 txt_edit.grid(row=1, column=0, sticky="nsew")
@@ -222,20 +222,16 @@ txt_edit.config(yscrollcommand=scroll.set)
 lbl_state=Label(text='Состояние')
 lbl_state.grid(row=2,column=0,sticky="w", padx=10)
 
-
-
 s = Style()
 s.theme_use('alt')
 s.configure("file.Horizontal.TProgressbar", background='lime')
-
-
 
 progress_file = Progressbar(orient="horizontal",  length=100, value=0, style='file.Horizontal.TProgressbar')
 progress_file.grid(row=3,column=0,sticky="ew")
 
 progress = Progressbar(orient="horizontal", length=100, value=0)
 progress.grid(row=4,column=0,sticky="ew")
-
+#======================================================END
 
 
 txt_edit.insert(END, f'Веса из файла {yolo_model} загружены\n')
