@@ -123,10 +123,9 @@ def save_file():
     window.title(f"Smoke Detect - {filepath}")
 
 def weights_choose():
-    pass
-    #global model
-    #model = YOLO(selected_option.get())
-    #model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
+    global model
+    model = YOLO(selected_option.get())
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 
 
@@ -144,7 +143,7 @@ yolo_model = glob(dir_path)[0]
 
 # Load the model.
 model = YOLO(yolo_model)
-model.to('cuda')
+# model.to('cuda')
 model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end) 
 
 
